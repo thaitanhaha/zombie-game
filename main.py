@@ -1,6 +1,7 @@
 import pygame
 import random
 import os
+import time
 
 pygame.init()
 
@@ -10,6 +11,7 @@ WIDTH, HEIGHT = 800, 600
 ZOMBIE_SIZE = 100
 BACKGROUND_COLOR = (50, 50, 50)
 BACKGROUND_IMAGE_PATH = f"{IMAGE_PATH}/background.png"
+HOLE_IMAGE_PATH = f"{IMAGE_PATH}/hole.png"
 background_img = pygame.image.load(BACKGROUND_IMAGE_PATH)
 background_img = pygame.transform.scale(background_img, (WIDTH, HEIGHT))
 TEXT_COLOR = (255, 255, 255)
@@ -21,6 +23,9 @@ for filename in zombie_filenames:
     img = pygame.image.load(f"{IMAGE_PATH}/zombie/{filename}")
     img = pygame.transform.scale(img, (ZOMBIE_SIZE, ZOMBIE_SIZE))
     zombie_images.append(img)
+
+hole_img = pygame.image.load(HOLE_IMAGE_PATH)
+hole = pygame.transform.scale(hole_img, (ZOMBIE_SIZE, ZOMBIE_SIZE))
 
 hammer_img = pygame.image.load(f"{IMAGE_PATH}/woodhammer.png")
 hammer_img = pygame.transform.scale(hammer_img, (60, 60))
@@ -36,6 +41,7 @@ pygame.display.set_caption("Whack-a-Zombie")
 score = 0
 misses = 0
 zombie_pos = (random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100))
+hole_pos = (zombie_pos[0] - 120, zombie_pos[1])
 zombie_visible = True
 zombie_timer = 0
 time_limit = 1000
@@ -77,6 +83,7 @@ while running:
         hammer_angle = 0
 
     if zombie_visible:
+        screen.blit(hole_img, hole_pos)
         screen.blit(current_zombie, zombie_pos)
         zombie_timer += clock.get_time()
         if zombie_timer > time_limit:
@@ -85,6 +92,7 @@ while running:
             miss_sound.play()
     else:
         zombie_pos = (random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100))
+        hole_pos = (zombie_pos[0] - 120, zombie_pos[1])
         current_zombie = random.choice(zombie_images)
         zombie_visible = True
         zombie_timer = 0
