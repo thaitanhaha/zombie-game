@@ -184,4 +184,11 @@ while running:
     pygame.display.flip()
     clock.tick(FPS)
 
+    if misses >= 5 and misses >= score:
+        draw_text("Game Over! Returning to Main Menu...", WIDTH // 2 - 200, HEIGHT // 2)
+        pygame.display.flip()
+        pygame.time.delay(2000)
+        main_menu()
+        score, misses = 0, 0
+
 pygame.quit()
