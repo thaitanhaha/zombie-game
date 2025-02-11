@@ -10,9 +10,9 @@ IMAGE_PATH = "images"
 AUDIO_PATH = "audio"
 WIDTH, HEIGHT = 800, 600
 ZOMBIE_SIZE = 100
+HOLE_WIDTH, HOLE_HEIGHT = 189, 100
 BACKGROUND_COLOR = (50, 50, 50)
 BACKGROUND_IMAGE_PATH = f"{IMAGE_PATH}/background.png"
-HOLE_IMAGE_PATH = f"{IMAGE_PATH}/hole.png"
 background_img = pygame.image.load(BACKGROUND_IMAGE_PATH)
 background_img = pygame.transform.scale(background_img, (WIDTH, HEIGHT))
 TEXT_COLOR = (255, 255, 255)
@@ -25,12 +25,16 @@ for filename in zombie_filenames:
     img = pygame.transform.scale(img, (ZOMBIE_SIZE, ZOMBIE_SIZE))
     zombie_images.append(img)
 
+HOLE_IMAGE_PATH = f"{IMAGE_PATH}/hole.png"
 hole_img = pygame.image.load(HOLE_IMAGE_PATH)
-hole = pygame.transform.scale(hole_img, (ZOMBIE_SIZE, ZOMBIE_SIZE))
+hole_img = pygame.transform.scale(hole_img, (HOLE_WIDTH, HOLE_HEIGHT))
 
+weapon_images = [pygame.image.load(f"{IMAGE_PATH}/weapons/weapon{x}.png") for x in range(1, 4)]
 weapon_images = [
-    pygame.image.load(f"{IMAGE_PATH}/weapons/weapon{x}.png") for x in range(1, 4)]
-weapon_images = [pygame.transform.scale(img, (60, 60)) for img in weapon_images]
+    pygame.transform.scale(img, (60, int(img.get_height() * (60 / img.get_width())))) 
+    for img in weapon_images
+]
+weapon_offsets = [(15, -15), (15, 15), (15, 0)]
 current_weapon = weapon_images[0]
 hit_sound = pygame.mixer.Sound(f"{AUDIO_PATH}/hit.mp3")
 miss_sound = pygame.mixer.Sound(f"{AUDIO_PATH}/miss.mp3")
@@ -52,7 +56,7 @@ def draw_text(text, font, color, surface, x, y):
 def main_menu():
     while True:
         screen.blit(background_img, (0, 0))
-        draw_text('Whack-a-Zombie', font, TEXT_COLOR, screen, WIDTH // 2 - 100, HEIGHT // 2 - 100)
+        draw_text('Whack a Zombie', font, TEXT_COLOR, screen, WIDTH // 2 - 100, HEIGHT // 2 - 100)
         draw_text('Play', font, TEXT_COLOR, screen, WIDTH // 2 - 30, HEIGHT // 2)
 
         pygame.display.flip()
@@ -68,7 +72,7 @@ def main_menu():
 
 def update_weapon(score):
     global current_weapon
-    idx = score // 20
+    idx = score // 3
     current_weapon = weapon_images[idx % len(weapon_images)]
 
 main_menu()
@@ -76,7 +80,7 @@ main_menu()
 score = 0
 misses = 0
 zombie_pos = (random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100))
-hole_pos = (zombie_pos[0] - 120, zombie_pos[1])
+hole_pos = (zombie_pos[0] - 50, zombie_pos[1] + 50)
 zombie_visible = True
 zombie_timer = 0
 time_limit = 1000
@@ -128,26 +132,26 @@ while running:
             miss_sound.play()
     else:
         zombie_pos = (random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100))
-        hole_pos = (zombie_pos[0] - 120, zombie_pos[1])
+        hole_pos = (zombie_pos[0] - 50, zombie_pos[1] + 50)
         current_zombie = random.choice(zombie_images)
         zombie_visible = True
         zombie_timer = 0
 
     rotated_hammer = pygame.transform.rotate(current_weapon, hammer_angle)
-    hammer_rect = rotated_hammer.get_rect(center=(mouse_x, mouse_y))
+    weapon_index = weapon_images.index(current_weapon)
+    offset_x, offset_y = weapon_offsets[weapon_index]
+    hammer_rect = rotated_hammer.get_rect(center=(mouse_x + offset_x, mouse_y + offset_y))
     screen.blit(rotated_hammer, hammer_rect.topleft)
 
     score_text = font.render(f"Hits: {score}  Misses: {misses}", True, TEXT_COLOR)
     screen.blit(score_text, (10, 10))
 
-    # Get the current FPS and render it as text
     fps = clock.get_fps()
     fps_text = font.render(f"FPS: {int(fps)}", True, TEXT_COLOR)
     screen.blit(fps_text, (WIDTH - fps_text.get_width() - 10, 10))
 
-    # Get the current RAM usage and render it as text
     process = psutil.Process(os.getpid())
-    ram_usage = process.memory_info().rss / 1024 / 1024  # Convert to MB
+    ram_usage = process.memory_info().rss / 1024 / 1024
     ram_text = font.render(f"RAM: {ram_usage:.2f} MB", True, TEXT_COLOR)
     screen.blit(ram_text, (WIDTH - ram_text.get_width() - 10, 50))
 
