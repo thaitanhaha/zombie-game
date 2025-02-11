@@ -2,6 +2,7 @@ import pygame
 import random
 import os
 import time
+import psutil
 
 pygame.init()
 
@@ -103,6 +104,17 @@ while running:
 
     score_text = font.render(f"Hits: {score}  Misses: {misses}", True, TEXT_COLOR)
     screen.blit(score_text, (10, 10))
+
+    # Get the current FPS and render it as text
+    fps = clock.get_fps()
+    fps_text = font.render(f"FPS: {int(fps)}", True, TEXT_COLOR)
+    screen.blit(fps_text, (WIDTH - fps_text.get_width() - 10, 10))
+
+    # Get the current RAM usage and render it as text
+    process = psutil.Process(os.getpid())
+    ram_usage = process.memory_info().rss / 1024 / 1024  # Convert to MB
+    ram_text = font.render(f"RAM: {ram_usage:.2f} MB", True, TEXT_COLOR)
+    screen.blit(ram_text, (WIDTH - ram_text.get_width() - 10, 50))
 
     pygame.display.flip()
     clock.tick(FPS)
