@@ -28,9 +28,10 @@ for filename in zombie_filenames:
 hole_img = pygame.image.load(HOLE_IMAGE_PATH)
 hole = pygame.transform.scale(hole_img, (ZOMBIE_SIZE, ZOMBIE_SIZE))
 
-hammer_img = pygame.image.load(f"{IMAGE_PATH}/woodhammer.png")
-hammer_img = pygame.transform.scale(hammer_img, (60, 60))
-
+weapon_images = [
+    pygame.image.load(f"{IMAGE_PATH}/weapons/weapon{x}.png") for x in range(1, 4)]
+weapon_images = [pygame.transform.scale(img, (60, 60)) for img in weapon_images]
+current_weapon = weapon_images[0]
 hit_sound = pygame.mixer.Sound(f"{AUDIO_PATH}/hit.mp3")
 miss_sound = pygame.mixer.Sound(f"{AUDIO_PATH}/miss.mp3")
 music = pygame.mixer.music.load(f"{AUDIO_PATH}/background_music.mp3")
@@ -65,6 +66,11 @@ def main_menu():
                 if WIDTH // 2 - 30 <= mouse_x <= WIDTH // 2 + 30 and HEIGHT // 2 <= mouse_y <= HEIGHT // 2 + 30:
                     return
 
+def update_weapon(score):
+    global current_weapon
+    idx = score // 20
+    current_weapon = weapon_images[idx % len(weapon_images)]
+
 main_menu()
 
 score = 0
@@ -98,6 +104,7 @@ while running:
                     score += 1
                     hit_sound.play()
                     zombie_visible = False
+                    update_weapon(score)
                 else:
                     misses += 1
                     miss_sound.play()
@@ -126,7 +133,7 @@ while running:
         zombie_visible = True
         zombie_timer = 0
 
-    rotated_hammer = pygame.transform.rotate(hammer_img, hammer_angle)
+    rotated_hammer = pygame.transform.rotate(current_weapon, hammer_angle)
     hammer_rect = rotated_hammer.get_rect(center=(mouse_x, mouse_y))
     screen.blit(rotated_hammer, hammer_rect.topleft)
 
