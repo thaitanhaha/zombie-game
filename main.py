@@ -39,6 +39,34 @@ pygame.mixer.music.play(-1)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Whack-a-Zombie")
 
+font = pygame.font.Font(None, 36)
+clock = pygame.time.Clock()
+
+def draw_text(text, font, color, surface, x, y):
+    textobj = font.render(text, True, color)
+    textrect = textobj.get_rect()
+    textrect.topleft = (x, y)
+    surface.blit(textobj, textrect)
+
+def main_menu():
+    while True:
+        screen.blit(background_img, (0, 0))
+        draw_text('Whack-a-Zombie', font, TEXT_COLOR, screen, WIDTH // 2 - 100, HEIGHT // 2 - 100)
+        draw_text('Play', font, TEXT_COLOR, screen, WIDTH // 2 - 30, HEIGHT // 2)
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = event.pos
+                if WIDTH // 2 - 30 <= mouse_x <= WIDTH // 2 + 30 and HEIGHT // 2 <= mouse_y <= HEIGHT // 2 + 30:
+                    return
+
+main_menu()
+
 score = 0
 misses = 0
 zombie_pos = (random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100))
