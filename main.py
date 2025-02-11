@@ -9,6 +9,9 @@ AUDIO_PATH = "audio"
 WIDTH, HEIGHT = 800, 600
 ZOMBIE_SIZE = 100
 BACKGROUND_COLOR = (50, 50, 50)
+BACKGROUND_IMAGE_PATH = f"{IMAGE_PATH}/background.png"
+background_img = pygame.image.load(BACKGROUND_IMAGE_PATH)
+background_img = pygame.transform.scale(background_img, (WIDTH, HEIGHT))
 TEXT_COLOR = (255, 255, 255)
 FPS = 60
 
@@ -45,7 +48,7 @@ hammer_down = False
 
 running = True
 while running:
-    screen.fill(BACKGROUND_COLOR)
+    screen.blit(background_img, (0, 0))
 
     mouse_x, mouse_y = pygame.mouse.get_pos()
     
