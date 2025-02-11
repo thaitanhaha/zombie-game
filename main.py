@@ -15,6 +15,11 @@ BACKGROUND_COLOR = (50, 50, 50)
 BACKGROUND_IMAGE_PATH = f"{IMAGE_PATH}/background.png"
 background_img = pygame.image.load(BACKGROUND_IMAGE_PATH)
 background_img = pygame.transform.scale(background_img, (WIDTH, HEIGHT))
+
+LOGO_IMAGE_PATH = f"{IMAGE_PATH}/logo.png"
+logo_img = pygame.image.load(LOGO_IMAGE_PATH)
+logo_img = pygame.transform.scale(logo_img, (400, int(logo_img.get_height() * (400 / logo_img.get_width()))))
+
 TEXT_COLOR = (255, 255, 255)
 FPS = 60
 
@@ -47,17 +52,36 @@ pygame.display.set_caption("Whack-a-Zombie")
 font = pygame.font.Font(None, 36)
 clock = pygame.time.Clock()
 
-def draw_text(text, font, color, surface, x, y):
+def draw_text(text, x, y, font=font, color=TEXT_COLOR, surface=screen):
     textobj = font.render(text, True, color)
     textrect = textobj.get_rect()
     textrect.topleft = (x, y)
     surface.blit(textobj, textrect)
 
+def instruction_screen():
+    showing_instructions = True
+    while showing_instructions:
+        screen.blit(background_img, (0, 0))
+        screen.blit(logo_img, (WIDTH // 2 - 175, HEIGHT // 2 - 150))
+        draw_text('Instructions', WIDTH // 2 - 70, HEIGHT // 2 - 40)
+        draw_text("1. Click on zombies to score points.", WIDTH // 2 - 215, HEIGHT // 2 + 10)
+        draw_text("2. If you miss, your miss count increases.", WIDTH // 2 - 215, HEIGHT // 2 + 40)
+        draw_text("3. Your weapon changes every 10 hits.", WIDTH // 2 - 215, HEIGHT // 2 + 70)
+        draw_text("4. You lose if misses >= score and misses >= 5.", WIDTH // 2 - 215, HEIGHT // 2 + 100)
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                showing_instructions = False
+
 def main_menu():
     while True:
         screen.blit(background_img, (0, 0))
-        draw_text('Whack a Zombie', font, TEXT_COLOR, screen, WIDTH // 2 - 100, HEIGHT // 2 - 100)
-        draw_text('Play', font, TEXT_COLOR, screen, WIDTH // 2 - 30, HEIGHT // 2)
+        screen.blit(logo_img, (WIDTH // 2 - 175, HEIGHT // 2 - 150))
+        draw_text('Instructions', WIDTH // 2 - 70, HEIGHT // 2 - 40)
+        draw_text('Play', WIDTH // 2 - 30, HEIGHT // 2)
 
         pygame.display.flip()
 
@@ -67,12 +91,14 @@ def main_menu():
                 quit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
+                if WIDTH // 2 - 70 <= mouse_x <= WIDTH // 2 + 70 and HEIGHT // 2 - 40 <= mouse_y <= HEIGHT // 2 - 10:
+                    instruction_screen()
                 if WIDTH // 2 - 30 <= mouse_x <= WIDTH // 2 + 30 and HEIGHT // 2 <= mouse_y <= HEIGHT // 2 + 30:
                     return
 
 def update_weapon(score):
     global current_weapon
-    idx = score // 3
+    idx = score // 10
     current_weapon = weapon_images[idx % len(weapon_images)]
 
 main_menu()
