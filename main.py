@@ -49,7 +49,7 @@ pygame.mixer.music.play(-1)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Whack-a-Zombie")
 
-font = pygame.font.Font(None, 36)
+font = pygame.font.Font("font/Creepster-Regular.ttf", 36)
 clock = pygame.time.Clock()
 
 def draw_text(text, x, y, font=font, color=TEXT_COLOR, surface=screen):
@@ -63,11 +63,11 @@ def instruction_screen():
     while showing_instructions:
         screen.blit(background_img, (0, 0))
         screen.blit(logo_img, (WIDTH // 2 - 175, HEIGHT // 2 - 150))
-        draw_text('Instructions', WIDTH // 2 - 70, HEIGHT // 2 - 40)
-        draw_text("1. Click on zombies to score points.", WIDTH // 2 - 215, HEIGHT // 2 + 10)
-        draw_text("2. If you miss, your miss count increases.", WIDTH // 2 - 215, HEIGHT // 2 + 40)
-        draw_text("3. Your weapon changes every 10 hits.", WIDTH // 2 - 215, HEIGHT // 2 + 70)
-        draw_text("4. You lose if misses >= score and misses >= 5.", WIDTH // 2 - 215, HEIGHT // 2 + 100)
+        draw_text('Instructions', WIDTH // 2 - 75, HEIGHT // 2 - 45)
+        draw_text("1. Click on zombies to score points.", WIDTH // 2 - 245, HEIGHT // 2 + 10)
+        draw_text("2. If you miss, your miss count increases.", WIDTH // 2 - 245, HEIGHT // 2 + 40)
+        draw_text("3. Your weapon changes every 10 hits.", WIDTH // 2 - 245, HEIGHT // 2 + 70)
+        draw_text("4. Lose if misses >= score and misses >= 5.", WIDTH // 2 - 245, HEIGHT // 2 + 100)
         pygame.display.flip()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -80,7 +80,7 @@ def main_menu():
     while True:
         screen.blit(background_img, (0, 0))
         screen.blit(logo_img, (WIDTH // 2 - 175, HEIGHT // 2 - 150))
-        draw_text('Instructions', WIDTH // 2 - 70, HEIGHT // 2 - 40)
+        draw_text('Instructions', WIDTH // 2 - 75, HEIGHT // 2 - 45)
         draw_text('Play', WIDTH // 2 - 30, HEIGHT // 2)
 
         pygame.display.flip()
@@ -91,7 +91,7 @@ def main_menu():
                 quit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
-                if WIDTH // 2 - 70 <= mouse_x <= WIDTH // 2 + 70 and HEIGHT // 2 - 40 <= mouse_y <= HEIGHT // 2 - 10:
+                if WIDTH // 2 - 70 <= mouse_x <= WIDTH // 2 + 110 and HEIGHT // 2 - 45 <= mouse_y <= HEIGHT // 2 - 15:
                     instruction_screen()
                 if WIDTH // 2 - 30 <= mouse_x <= WIDTH // 2 + 30 and HEIGHT // 2 <= mouse_y <= HEIGHT // 2 + 30:
                     return
@@ -110,8 +110,6 @@ hole_pos = (zombie_pos[0] - 50, zombie_pos[1] + 50)
 zombie_visible = True
 zombie_timer = 0
 time_limit = 1000
-font = pygame.font.Font(None, 36)
-clock = pygame.time.Clock()
 current_zombie = random.choice(zombie_images)
 
 hammer_angle = 0
@@ -185,7 +183,7 @@ while running:
     clock.tick(FPS)
 
     if misses >= 5 and misses >= score:
-        draw_text("Game Over! Returning to Main Menu...", WIDTH // 2 - 200, HEIGHT // 2)
+        draw_text("Game Over! Returning to Main Menu...", WIDTH // 2 - 225, HEIGHT // 2)
         pygame.display.flip()
         pygame.time.delay(2000)
         main_menu()
