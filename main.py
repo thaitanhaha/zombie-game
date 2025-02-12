@@ -67,7 +67,7 @@ def instruction_screen():
         draw_text("1. Click on zombies to score points.", WIDTH // 2 - 245, HEIGHT // 2 + 10)
         draw_text("2. If you miss, your miss count increases.", WIDTH // 2 - 245, HEIGHT // 2 + 40)
         draw_text("3. Your weapon changes every 10 hits.", WIDTH // 2 - 245, HEIGHT // 2 + 70)
-        draw_text("4. Lose if misses >= score and misses >= 5.", WIDTH // 2 - 245, HEIGHT // 2 + 100)
+        draw_text("4. Lose if misses >= 10.", WIDTH // 2 - 245, HEIGHT // 2 + 100)
         pygame.display.flip()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -101,19 +101,46 @@ def update_weapon(score):
     idx = score // 10
     current_weapon = weapon_images[idx % len(weapon_images)]
 
+def generate_positions(score=0, min_distance=200, WIDTH=WIDTH, HEIGHT=HEIGHT):
+    def generate_hole():
+        return (random.randint(150, WIDTH - 150), random.randint(150, HEIGHT - 150))
+
+    if score >= 0 and score <= 5:
+        num_holes = 1
+    elif score > 5 and score <= 20:
+        num_holes = 2
+    elif score > 20 and score <= 50:
+        num_holes = 3
+    else:
+        num_holes = 4
+        min_distance = 100
+    holes_pos = []
+    while len(holes_pos) < num_holes:
+        new_hole = generate_hole()
+        too_close = False
+        for hole in holes_pos:
+            distance = ((new_hole[0] - hole[0]) ** 2 + (new_hole[1] - hole[1]) ** 2) ** 0.5
+            if distance < min_distance:
+                too_close = True
+                break
+        if not too_close: holes_pos.append(new_hole)
+    zombies_pos = [(hole[0] + 50, hole[1] - 50) for hole in holes_pos]
+    alives = [True for _ in holes_pos]
+    current_zombies = [random.choice(zombie_images) for _ in holes_pos]
+    return holes_pos, zombies_pos, alives, current_zombies
+
+
 main_menu()
 
 score = 0
 misses = 0
-hole_pos = (random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100))
-zombie_pos = (hole_pos[0] + 50, hole_pos[1] - 50)
-zombie_visible = False
-hole_visible = False
-hole_timer = 0
+holes_pos, zombies_pos, alives, current_zombies = generate_positions()
+zombies_visible = False
+holes_visible = False
+holes_timer = 0
 time_limit = 1000
-hole_delay = 500
-all_delay = time_limit + hole_delay
-current_zombie = random.choice(zombie_images)
+holes_delay = 500
+all_delay = time_limit + holes_delay
 
 hammer_angle = 0
 hammer_down = False
@@ -129,18 +156,17 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = event.pos
-            if zombie_visible:
-                zx, zy = zombie_pos
-                if zx < mouse_x < zx + ZOMBIE_SIZE and zy < mouse_y < zy + ZOMBIE_SIZE:
-                    score += 1
-                    hit_sound.play()
-                    zombie_visible = False
-                    hole_visible = False
-                    hole_pos = (random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100))
-                    zombie_pos = (hole_pos[0] + 50, hole_pos[1] - 50)
-                    hole_timer = current_time
-                    update_weapon(score)
-                else:
+            if zombies_visible:
+                check = False
+                for i in range(len(zombies_pos)):
+                    zx, zy = zombies_pos[i]
+                    if zx < mouse_x < zx + ZOMBIE_SIZE and zy < mouse_y < zy + ZOMBIE_SIZE:
+                        score += 1
+                        hit_sound.play()
+                        alives[i] = False
+                        check = True
+                        update_weapon(score)
+                if not check:
                     misses += 1
                     miss_sound.play()
             else:
@@ -156,23 +182,26 @@ while running:
     else:
         hammer_angle = 0
 
-    if hole_visible:
-        screen.blit(hole_img, hole_pos)
-        if zombie_visible:
-            screen.blit(current_zombie, zombie_pos)
-        if current_time - hole_timer > all_delay:
-            hole_visible = False
-            hole_pos = (random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100))
-            zombie_pos = (hole_pos[0] + 50, hole_pos[1] - 50)
-            hole_timer = current_time
-            zombie_visible = False
-            misses += 1
-            miss_sound.play()
-        elif zombie_visible == False and current_time - hole_timer > hole_delay:
-            current_zombie = random.choice(zombie_images)
-            zombie_pos = (hole_pos[0] + 50, hole_pos[1] - 50)
-            zombie_visible = True
-    else: hole_visible = True
+    if holes_visible:
+        for i in range(len(holes_pos)):
+            screen.blit(hole_img, holes_pos[i])
+            if zombies_visible:
+                if alives[i]: screen.blit(current_zombies[i], zombies_pos[i])
+            if current_time - holes_timer > all_delay:
+                holes_visible = False
+                holes_timer = current_time
+                zombies_visible = False
+                check = False
+                for j in range(len(alives)):
+                    if alives[j] == True:
+                        check = True
+                        misses += 1
+                if check: miss_sound.play()
+                holes_pos, zombies_pos, alives, current_zombies = generate_positions(score)
+            elif zombies_visible == False and current_time - holes_timer > holes_delay:
+                zombies_pos[i] = (holes_pos[i][0] + 50, holes_pos[i][1] - 50)
+                zombies_visible = True
+    else: holes_visible = True
 
     rotated_hammer = pygame.transform.rotate(current_weapon, hammer_angle)
     weapon_index = weapon_images.index(current_weapon)
@@ -195,7 +224,7 @@ while running:
     pygame.display.flip()
     clock.tick(FPS)
 
-    if misses >= 5 and misses >= score:
+    if misses >= 10:
         draw_text("Game Over! Returning to Main Menu...", WIDTH // 2 - 225, HEIGHT // 2)
         pygame.display.flip()
         pygame.time.delay(2000)
