@@ -95,9 +95,6 @@ def main_menu():
                     instruction_screen()
                 if WIDTH // 2 - 30 <= mouse_x <= WIDTH // 2 + 30 and HEIGHT // 2 <= mouse_y <= HEIGHT // 2 + 30:
                     global score, misses, holes_pos, zombies_pos, alives, current_zombies
-                    score = 0
-                    misses = 0
-                    holes_pos, zombies_pos, alives, current_zombies = generate_positions()
                     return
 
 def update_weapon(score):
@@ -137,7 +134,7 @@ def generate_positions(score=0, min_distance=200, WIDTH=WIDTH, HEIGHT=HEIGHT):
 main_menu()
 
 score = 0
-misses = 0
+misses = -1
 holes_pos, zombies_pos, alives, current_zombies = generate_positions()
 zombies_visible = False
 holes_visible = False
@@ -191,6 +188,11 @@ while running:
             screen.blit(hole_img, holes_pos[i])
             if zombies_visible:
                 if alives[i]: screen.blit(current_zombies[i], zombies_pos[i])
+                else:
+                    width, height = current_zombies[i].get_size()
+                    new_width, new_height = width, 15
+                    scaled_zombie = pygame.transform.scale(current_zombies[i], (new_width, new_height))
+                    screen.blit(scaled_zombie, (zombies_pos[i][0], zombies_pos[i][1] + 0.8*height))
             if current_time - holes_timer > all_delay:
                 holes_visible = False
                 holes_timer = current_time
@@ -213,7 +215,7 @@ while running:
     hammer_rect = rotated_hammer.get_rect(center=(mouse_x + offset_x, mouse_y + offset_y))
     screen.blit(rotated_hammer, hammer_rect.topleft)
 
-    score_text = font.render(f"Hits: {score}  Misses: {misses}", True, TEXT_COLOR)
+    score_text = font.render(f"Hits: {score}  Misses: {max(misses, 0)}", True, TEXT_COLOR)
     screen.blit(score_text, (10, 10))
 
     fps = clock.get_fps()
@@ -233,6 +235,7 @@ while running:
         pygame.display.flip()
         pygame.time.delay(2000)
         main_menu()
-        score, misses = 0, 0
+        score, misses = 0, -1
+        holes_pos, zombies_pos, alives, current_zombies = generate_positions()
 
 pygame.quit()
