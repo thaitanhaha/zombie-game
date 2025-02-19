@@ -76,27 +76,6 @@ def instruction_screen():
             if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
                 showing_instructions = False
 
-def main_menu():
-    while True:
-        screen.blit(background_img, (0, 0))
-        screen.blit(logo_img, (WIDTH // 2 - 175, HEIGHT // 2 - 150))
-        draw_text('Instructions', WIDTH // 2 - 75, HEIGHT // 2 - 45)
-        draw_text('Play', WIDTH // 2 - 30, HEIGHT // 2)
-
-        pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = event.pos
-                if WIDTH // 2 - 70 <= mouse_x <= WIDTH // 2 + 110 and HEIGHT // 2 - 45 <= mouse_y <= HEIGHT // 2 - 15:
-                    instruction_screen()
-                if WIDTH // 2 - 30 <= mouse_x <= WIDTH // 2 + 30 and HEIGHT // 2 <= mouse_y <= HEIGHT // 2 + 30:
-                    global score, misses, holes_pos, zombies_pos, alives, current_zombies
-                    return
-
 def update_weapon(score):
     global current_weapon
     idx = score // 10
@@ -130,11 +109,8 @@ def generate_positions(score=0, min_distance=200, WIDTH=WIDTH, HEIGHT=HEIGHT):
     current_zombies = [random.choice(zombie_images) for _ in holes_pos]
     return holes_pos, zombies_pos, alives, current_zombies
 
-
-main_menu()
-
 score = 0
-misses = -1
+misses = 0
 holes_pos, zombies_pos, alives, current_zombies = generate_positions()
 zombies_visible = False
 holes_visible = False
@@ -142,9 +118,41 @@ holes_timer = 0
 time_limit = 1000
 holes_delay = 500
 all_delay = time_limit + holes_delay
+first_timer = 0
+first = True
+current_time = 0
 
 hammer_angle = 0
 hammer_down = False
+
+def main_menu():
+    global first_timer, current_time, score, misses, first, holes_pos, zombies_pos, alives, current_zombies, zombies_visible, holes_visible
+    while True:
+        current_time = pygame.time.get_ticks()
+        screen.blit(background_img, (0, 0))
+        screen.blit(logo_img, (WIDTH // 2 - 175, HEIGHT // 2 - 150))
+        draw_text('Instructions', WIDTH // 2 - 75, HEIGHT // 2 - 45)
+        draw_text('Play', WIDTH // 2 - 30, HEIGHT // 2)
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = event.pos
+                if WIDTH // 2 - 70 <= mouse_x <= WIDTH // 2 + 110 and HEIGHT // 2 - 45 <= mouse_y <= HEIGHT // 2 - 15:
+                    instruction_screen()
+                if WIDTH // 2 - 30 <= mouse_x <= WIDTH // 2 + 30 and HEIGHT // 2 <= mouse_y <= HEIGHT // 2 + 30:
+                    first_timer = current_time
+                    score, misses, first = 0, 0, True
+                    zombies_visible, holes_visible = False, False
+                    holes_pos, zombies_pos, alives, current_zombies = generate_positions()
+                    update_weapon(0)
+                    return
+
+main_menu()
 
 running = True
 while running:
@@ -161,7 +169,7 @@ while running:
                 check = False
                 for i in range(len(zombies_pos)):
                     zx, zy = zombies_pos[i]
-                    if zx < mouse_x < zx + ZOMBIE_SIZE and zy < mouse_y < zy + ZOMBIE_SIZE:
+                    if zx < mouse_x < zx + ZOMBIE_SIZE and zy < mouse_y < zy + ZOMBIE_SIZE and alives[i] == True:
                         score += 1
                         hit_sound.play()
                         alives[i] = False
@@ -207,7 +215,10 @@ while running:
             elif zombies_visible == False and current_time - holes_timer > holes_delay:
                 zombies_pos[i] = (holes_pos[i][0] + 50, holes_pos[i][1] - 50)
                 zombies_visible = True
-    else: holes_visible = True
+    else: 
+        if first == False: holes_visible = True
+        elif current_time - first_timer > 500:
+            first, holes_visible, holes_timer = False, True, current_time
 
     rotated_hammer = pygame.transform.rotate(current_weapon, hammer_angle)
     weapon_index = weapon_images.index(current_weapon)
@@ -215,7 +226,7 @@ while running:
     hammer_rect = rotated_hammer.get_rect(center=(mouse_x + offset_x, mouse_y + offset_y))
     screen.blit(rotated_hammer, hammer_rect.topleft)
 
-    score_text = font.render(f"Hits: {score}  Misses: {max(misses, 0)}", True, TEXT_COLOR)
+    score_text = font.render(f"Hits: {score}  Misses: {misses}", True, TEXT_COLOR)
     screen.blit(score_text, (10, 10))
 
     fps = clock.get_fps()
@@ -235,7 +246,5 @@ while running:
         pygame.display.flip()
         pygame.time.delay(2000)
         main_menu()
-        score, misses = 0, -1
-        holes_pos, zombies_pos, alives, current_zombies = generate_positions()
 
 pygame.quit()
