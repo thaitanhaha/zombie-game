@@ -94,6 +94,10 @@ def main_menu():
                 if WIDTH // 2 - 70 <= mouse_x <= WIDTH // 2 + 110 and HEIGHT // 2 - 45 <= mouse_y <= HEIGHT // 2 - 15:
                     instruction_screen()
                 if WIDTH // 2 - 30 <= mouse_x <= WIDTH // 2 + 30 and HEIGHT // 2 <= mouse_y <= HEIGHT // 2 + 30:
+                    global score, misses, holes_pos, zombies_pos, alives, current_zombies
+                    score = 0
+                    misses = 0
+                    holes_pos, zombies_pos, alives, current_zombies = generate_positions()
                     return
 
 def update_weapon(score):
